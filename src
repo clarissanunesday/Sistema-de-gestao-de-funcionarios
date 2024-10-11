@@ -1,0 +1,106 @@
+Criar o Banco de Dados (se não existir)
+CREATE DATABASE IF NOT EXISTS GestaoFuncionarios;
+USE GestaoFuncionarios;
+
+-- 2. Criar as Tabelas (se não existirem)
+-- Tabela Departamentos
+CREATE TABLE IF NOT EXISTS Departamentos (
+    id_departamento INT PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(50) NOT NULL
+);
+
+-- Tabela Funcionarios
+CREATE TABLE IF NOT EXISTS Funcionarios (
+    id_funcionario INT PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(100) NOT NULL,
+    cargo VARCHAR(50) NOT NULL,
+    salario DECIMAL(10, 2) NOT NULL,
+    id_departamento INT,
+    FOREIGN KEY (id_departamento) REFERENCES Departamentos(id_departamento)
+);
+
+-- Tabela Salarios
+CREATE TABLE IF NOT EXISTS Salarios (
+    id_salario INT PRIMARY KEY AUTO_INCREMENT,
+    id_funcionario INT,
+    data DATE NOT NULL,
+    valor DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (id_funcionario) REFERENCES Funcionarios(id_funcionario)
+);
+
+-- 3. Inserir Dados
+
+-- Adicionar registros nas tabelas Funcionarios
+INSERT IGNORE INTO Funcionarios (nome, cargo, salario, id_departamento) 
+VALUES ('Ana Silva', 'Analista de RH', 4000.00, 1);
+INSERT IGNORE INTO Funcionarios (nome, cargo, salario, id_departamento) 
+VALUES ('Carlos Souza', 'Desenvolvedor', 6000.00, 2);
+INSERT IGNORE INTO Funcionarios (nome, cargo, salario, id_departamento) 
+VALUES ('Maria Oliveira', 'Gerente Financeiro', 7000.00, 3);
+
+-- Adicionar registros nas tabelas Salarios
+INSERT IGNORE INTO Salarios (id_funcionario, data, valor) 
+VALUES (1, '2024-01-01', 4000.00);
+INSERT IGNORE INTO Salarios (id_funcionario, data, valor) 
+VALUES (2, '2024-01-01', 6000.00);
+INSERT IGNORE INTO Salarios (id_funcionario, data, valor) 
+VALUES (3, '2024-01-01', 7000.00);
+
+-- 4. Consultar Dados
+
+-- Listar todos os funcionários e seus respectivos departamentos
+SELECT f.id_funcionario, f.nome AS Funcionario, f.cargo, f.salario, d.nome AS Departamento
+FROM Funcionarios f
+JOIN Departamentos d ON f.id_departamento = d.id_departamento;
+
+-- Mostrar o salário total de cada departamento
+SELECT d.nome AS Departamento, SUM(f.salario) AS Salario_Total
+FROM Funcionarios f
+JOIN Departamentos d ON f.id_departamento = d.id_departamento
+GROUP BY d.nome;
+
+-- Verificar os salários históricos de um funcionário específico
+SELECT f.nome AS Funcionario, s.data, s.valor
+FROM Salarios s
+JOIN Funcionarios f ON s.id_funcionario = f.id_funcionario
+WHERE f.nome = 'Ana Silva';
+
+-- 5. Atualizar Dados
+
+-- Desativar o modo seguro temporariamente
+SET SQL_SAFE_UPDATES = 0;
+
+-- Atualizar o nome do departamento
+UPDATE Departamentos
+SET nome = 'Recursos Humanos e Desenvolvimento'
+WHERE nome = 'Recursos Humanos';
+
+-- Reativar o modo seguro
+SET SQL_SAFE_UPDATES = 1;
+
+-- Atualizar o salário de um funcionário específico usando a chave primária
+-- Primeiro, encontre o id_funcionario
+SELECT id_funcionario FROM Funcionarios WHERE nome = 'Ana Silva';
+
+-- Atualize o salário (suponha que o id_funcionario retornado seja 1)
+UPDATE Funcionarios
+SET salario = 4500.00
+WHERE id_funcionario = 1;  -- Substitua '1' pelo id_funcionario real retornado pela consulta anterior
+
+-- 6. Deletar Dados
+
+-- Excluir um funcionário e todos os registros relacionados de salários
+-- Primeiro, encontre o id_funcionario
+SELECT id_funcionario FROM Funcionarios WHERE nome = 'Ana Silva';
+
+-- Excluir os salários e o funcionário (suponha que o id_funcionario retornado seja 1)
+DELETE FROM Salarios
+WHERE id_funcionario = 1;  -- Substitua '1' pelo id_funcionario real retornado pela consulta anterior
+
+DELETE FROM Funcionarios
+WHERE id_funcionario = 1;  -- Substitua '1' pelo id_funcionario real retornado pela consulta anterior
+
+-- Remover um departamento (certifique-se de que não existam funcionários associados antes de deletar o departamento)
+-- Primeiro, verifique se há funcionários associados
+SELECT COUNT(*) AS TotalFuncionarios
+FROM Funcionarios
